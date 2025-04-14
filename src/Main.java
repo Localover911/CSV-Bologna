@@ -1,91 +1,70 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 public class Main {
+    String filePath = "src/Locatelli.csv";
+    File csv = new File (filePath);
 
     public static void main(String[] args) {
-        String filePath = "locatelli.csv";
+        String filePath = "C:\\Users\\locatelli.21131\\Desktop\\loca.CVS\\Locatelli.CSV";
+        File csv = new File (filePath);
+        if (!csv.exists()){
+            return;
+        }
+        try{ BufferedReader br = new BufferedReader(new FileReader(csv));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(csv));
+            String next = "";
 
-        try {
-            List<String[]> records = readCsv(filePath);
-
-            int[] maxColumnWidths = calculateMaxColumnWidths(records);
-            int maxRecordLength = calculateMaxRecordLength(records, maxColumnWidths);
-
-            formatAndPrintRecords(records, maxColumnWidths);
-
-            System.out.println("\nLunghezza massima di ciascun campo:");
-            for (int i = 0; i < maxColumnWidths.length; i++) {
-                System.out.println("Colonna " + (i + 1) + ": " + maxColumnWidths[i] + " caratteri");
+            if(!(next == null)) {
+                br.readLine();
+                String [] campi = next.split(";");
+                System.out.println("campi = " + campi.length);
             }
-            System.out.println("\nLunghezza massima del record: " + maxRecordLength + " caratteri");
+
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
+    public void generaHTML() {
+        String percorsoCSV = "Locatelli.csv";
+        String percorsoHTML = "Locatelli.html";
 
-    private static List<String[]> readCsv(String filePath) throws IOException {
-        List<String[]> records = new ArrayList<>();
-        BufferedReader br = new BufferedReader(new FileReader(filePath));
-        String line;
+        try (
+                BufferedReader reader = new BufferedReader(new FileReader(percorsoCSV));
+                PrintWriter writer = new PrintWriter(percorsoHTML);
+        ) {
+            String next = reader.readLine();
 
+            if (next == null) {
+                System.out.println("Il file CSV è vuoto.");
+                return;
+            }
 
-        while ((line = br.readLine()) != null) {
-            String[] values = line.split(",");
-            records.add(values);
-        }
-        br.close();
-        return records;
-    }
+            writer.println("<html><head><title>ElaboratoCSV</title></head><body>");
+            writer.println("<h2>CSV</h2>");
 
+            String[] intestazioni = next.split(";");
+            writer.print("<tr>");
+            for (String colonna : intestazioni) {
+                writer.print("<th>" + colonna.trim() + "</th>");
+            }
+            writer.println("</tr>");
 
-    private static int[] calculateMaxColumnWidths(List<String[]> records) {
-        int numColumns = records.get(0).length;
-        int[] maxWidths = new int[numColumns];
-
-        for (String[] record : records) {
-            for (int i = 0; i < record.length; i++) {
-                if (record[i].length() > maxWidths[i]) {
-                    maxWidths[i] = record[i].length();
+            while ((next = reader.readLine()) != null) {
+                String[] valori = next.split(";");
+                writer.print("<tr>");
+                for (String valore : valori) {
+                    writer.print("<td>" + valore.trim() + "</td>");
                 }
+                writer.println("</tr>");
             }
-        }
-        return maxWidths;
-    }
 
+            writer.println("</table></body></html>");
+            System.out.println("File HTML generato con successo: " + percorsoHTML);
 
-    private static int calculateMaxRecordLength(List<String[]> records, int[] maxColumnWidths) {
-        int maxLength = 0;
-
-        for (String[] record : records) {
-            int recordLength = 0;
-            for (int i = 0; i < record.length; i++) {
-                recordLength += maxColumnWidths[i] + 1; // +1 per il separatore della virgola
-            }
-            recordLength--;
-            if (recordLength > maxLength) {
-                maxLength = recordLength;
-            }
-        }
-
-        return maxLength;
-    }
-
-
-    private static void formatAndPrintRecords(List<String[]> records, int[] maxColumnWidths) {
-        for (String[] record : records) {
-            for (int i = 0; i < record.length; i++) {
-
-                System.out.print(String.format("%-" + maxColumnWidths[i] + "s", record[i]));
-                if (i < record.length - 1) {
-                    System.out.print(", ");
-                }
-            }
-            System.out.println();
+        } catch (IOException e) {
+            System.out.println("Errore durante la lettura o scrittura: " + e.getMessage());
         }
     }
 }
